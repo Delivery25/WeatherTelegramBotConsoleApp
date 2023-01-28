@@ -13,7 +13,7 @@ var idOffset = 0;
 
 while (true)
 {
-    //запрос на получения сообщения от пользователя
+    //запрос на получение новых сообщений у бота
     var response = await httpClient.GetAsync(addressTelegramApi + token + "/getUpdates?&offset=" + idOffset);
     
     //обработка ошибки
@@ -23,6 +23,7 @@ while (true)
         continue;
     }
 
+    //десериализация ответа и его обработка
     var jsonResult = response.Content.ReadAsStringAsync().Result;
     var modelResponseTelegram = JsonConvert.DeserializeObject<ResponseTelegram>(jsonResult);
 
@@ -39,30 +40,20 @@ while (true)
         var chatId = model.Message.Chat.Id;
         var textMessage = string.Empty;
 
-        if (message == @"/start")
+        switch (message)
         {
-            textMessage = $"Добро пожаловать, {model.Message.From.FirstName}!"
-                + "\nЯ с удовольствие буду информировать Вас о погоде."
-                + "\nВаш преданный помощник, WeatherBot";
-            response = await httpClient.GetAsync(addressTelegramApi + token + "/sendMessage?chat_id=" + chatId + "&text=" + textMessage);
-            //обработка ошибки
-            if (!response.IsSuccessStatusCode)
-            {
-                Console.WriteLine($"Произошла внутренняя ошибка приложения: не удалось отправить сообщение в чат {chatId}");
+            case @"/start":
+                textMessage = $"Добро пожаловать, {model.Message.From.FirstName}!"
+                              + "\nЯ с удовольствие буду информировать Вас о погоде."
+                              + "\nВаш преданный помощник, WeatherBot";
+                SendMessage(chatId, textMessage);
                 continue;
-            }
-        }
-        if (message == @"/weather")
-        {
-            textMessage = "Для какого города Вы хотите узнать погоду?";
-            response = await httpClient.GetAsync(addressTelegramApi + token + "/sendMessage?chat_id=" + chatId + "&text=" + textMessage);
-            //обработка ошибки
-            if (!response.IsSuccessStatusCode)
-            {
-                Console.WriteLine($"Произошла внутренняя ошибка приложения: не удалось отправить сообщение в чат {chatId}");
+            case @"/weather":
+                textMessage = "Для какого города Вы хотите узнать погоду?";
+                SendMessage(chatId, textMessage);
                 continue;
-            }
         }
+
         if (!string.IsNullOrWhiteSpace(message) && message != @"/start" && message != @"/weather")
         {
             //получение данных о погоде
@@ -77,11 +68,7 @@ while (true)
             if (!response.IsSuccessStatusCode)
             {
                 textMessage = $"Проверьте название города \"{message}\", если оно написано верно, то повторите попытку позднее";
-                response = await httpClient.GetAsync(addressTelegramApi + token + "/sendMessage?chat_id=" + chatId + "&text=" + textMessage);
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"Произошла внутренняя ошибка приложения: не удалось отправить сообщение в чат {chatId}");
-                }
+                SendMessage(chatId, textMessage);
                 continue;
             }
 
@@ -97,14 +84,17 @@ while (true)
                           + $"\nВлажность: {modelResponseWeather.Main.Humidity}%"
                           + $"\nДавление: {modelResponseWeather.Main.Pressure} мм рт.ст.";
 
-            response = await httpClient.GetAsync(addressTelegramApi + token + "/sendMessage?chat_id=" + chatId + "&text=" + textMessage);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                Console.WriteLine($"Произошла внутренняя ошибка приложения: не удалось отправить сообщение в чат {chatId}");
-                return;
-            }
+            SendMessage(chatId, textMessage);
         }
+    }
+}
+
+void SendMessage(int chatId, string textMessage)
+{
+    var response = httpClient.GetAsync(addressTelegramApi + token + "/sendMessage?chat_id=" + chatId + "&text=" + textMessage).Result;
+    if (!response.IsSuccessStatusCode)
+    {
+        Console.WriteLine($"Произошла внутренняя ошибка приложения: не удалось отправить сообщение в чат {chatId}");
     }
 }
 
