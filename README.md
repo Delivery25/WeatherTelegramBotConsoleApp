@@ -1,6 +1,7 @@
 WeatherTelegramBotConsoleApp - консольное приложение для телеграм бота, который возвращает погоду по заданному городу  
 Ссылка на бота: http://t.me/best_info_weather_bot  
 (Если захотите протестировать бота, то пишите мне в личные сообщения, я запущу его, чтобы он работал)  
-![image](https://user-images.githubusercontent.com/85493858/215283881-1992e308-6aaf-4678-a034-a5e9534cf689.png)
+![image](https://user-images.githubusercontent.com/85493858/215283881-1992e308-6aaf-4678-a034-a5e9534cf689.png)  
+
 Разработала Дудникова Диана  
 ИП-19-3
